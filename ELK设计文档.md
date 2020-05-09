@@ -59,7 +59,250 @@
 
 #### 	2.logstash配置
 
-​	//todo yy
+#####  2.1 config目录下编辑logstash.yml文件
+
+```shell
+http.host: "0.0.0.0"
+
+#配置文件都在目录 conf.d/*.conf中，意味着，所有.conf结尾的都是配置文件，都会执行
+
+path.config: /usr/share/logstash/conf.d/*.conf
+
+#安全配置
+
+xpack.monitoring.elasticsearch.username: elastic
+xpack.monitoring.elasticsearch.password: luoji_elk
+```
+
+##### 2.2 conf.d目录下新建文件mynginx.conf文件
+
+```shell
+#输入模块定义
+input{
+    beats {
+	   port => 5044
+    }
+}
+#过滤模块定义
+filter{
+   
+  if [fields][document_type] == "nginx-access" {   
+     mutate {
+       remove_field => ["host","agent","ecs","tags","@version","@timestamp","input","log"]
+       add_field => {"type" => "nginx-access"}
+     }
+     json {
+       source => "message"
+       #移除多余字段
+       remove_field => "message"
+     }
+     #grok插件
+     grok {
+        #从时间中获取day
+         match => { "@timestamp" => "(?<day>.{10})" }
+     }
+ 
+  }
+  if [fields][document_type] == "nginx-error" {
+      
+     mutate {
+       remove_field => ["host","agent","ecs","tags","@version","@timestamp","input","log"]
+       add_field => {"type" => "nginx-error"}
+     }
+     grok {
+       match => [ "message" , "(?<timestamp>%{YEAR}[./-]%{MONTHNUM}[./-]%{MONTHDAY}[- ]%{TIME}) \[%{LOGLEVEL:severity}\] %{POSINT:pid}#%{NUMBER}: %{GREEDYDATA:errormessage}(?:, client: (?<remote_addr>%{IP}|%{HOSTNAME}))(?:, server: %{IPORHOST:server}?)(?:, request: %{QS:request})?(?:, upstream: (?<upstream>\"%{URI}\"|%{QS}))?(?:, host: %{QS:request_host})?(?:, referrer:\"%{URI:referrer}\")?"]
+       remove_field => ["message"]       
+     }
+     date {
+        match => ["timestamp","yyyy/MM/dd HH:mm:ss","ISO8601"]
+        target => "@timestamp"
+     }
+     #grok插件
+     grok {
+        #从时间中获取day
+         match => { "@timestamp" => "(?<day>.{10})" }
+     }
+
+     mutate {
+       remove_field => ["timestamp"]
+     }
+
+
+  }
+
+}
+
+# 输出块定义
+output{
+      if [fields][document_type] == "nginx-access" {
+           elasticsearch {
+               hosts => ["elasticsearch:9200"]
+               user => elastic
+               password => luoji_elk
+               index => "nginx-access-%{day}"
+               manage_template => true
+               template_overwrite => true
+               template_name => "nginx-access"
+               template => "/usr/share/logstash/myfile/nginx-access.json"
+            }
+      }
+ 
+      if [fields][document_type] == "nginx-error" {
+          elasticsearch {
+               hosts => ["elasticsearch:9200"]
+               user => elastic
+               password => luoji_elk
+               index => "nginx-error-%{day}"
+               manage_template => true
+               template_overwrite => true
+               template_name => "nginx-error"
+               template => "/usr/share/logstash/myfile/nginx-error.json"
+            }
+      }
+
+}
+```
+
+##### 2.3编辑索引模板文件 nginx-access.json和nginx-error.json
+
+###### 2.3.1编辑nginx-access.json
+
+```shell
+{  
+    "index_patterns": ["nginx-access-*"],
+    "settings": {
+        "index.number_of_shards": 5,
+        "number_of_replicas": 0
+     },
+    "mappings" : {
+        "properties" : {
+          "@timestamp": {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+         "@version": {
+            "type": "integer"
+          },
+         "client": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "host": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "domain": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+         "port": {
+            "type": "keyword"
+          },
+          "url": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "args": {
+            "type": "text",
+            "index": false
+          },
+          "request_method": {
+            "type": "keyword"
+          },
+          "scheme": {
+            "type": "keyword"
+          },
+          "status": {
+            "type": "keyword"
+          },
+          "referer": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "size": {
+            "type": "keyword"
+          },
+          "responsetime": {
+            "type": "scaled_float",
+            "scaling_factor": 1000
+          },
+          "ua": {
+            "type": "text",
+            "index": false
+          },
+          "type":{
+            "type":"keyword"
+          },
+          "day":{
+             "type":"date",
+             "format":"yyyy-MM-dd"
+          }
+      }
+   }  
+}
+```
+
+###### 2.3.1编辑nginx-error.json
+
+```shell
+{  
+    "index_patterns": ["nginx-error-*"],
+    "settings": {
+        "index.number_of_shards": 5,
+        "number_of_replicas": 0
+     },
+    "mappings" : {
+        "properties" : {
+          "@timestamp": {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+         "pid": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+         "errormessage": {
+            "type": "text",
+            "index": false
+          },
+          "server": {
+             "type": "keyword",
+             "ignore_above": 256
+          },
+          "request": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+         "port": {
+            "type": "integer"
+          },
+          "upstream": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "remote_addr": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "request_host": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "type":{
+            "type":"keyword"
+          },
+          "day":{
+             "type":"date",
+             "format":"yyyy-MM-dd"
+          }
+      }
+   }  
+}
+
+```
 
 #### 	3.kibana配置
 
