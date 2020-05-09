@@ -55,7 +55,24 @@
 
 #### 	1.elasticsearch配置
 
-​	//todo zsj
+​	http.cors.enabled: true
+http.cors.allow-origin: "*"
+bootstrap.system_call_filter: false
+
+xpack.security.enabled: true
+discovery.type: single-node
+
+# 避免发生OOM，发生OOM对集群影响很大的
+indices.breaker.total.limit: 70%
+
+# 有了这个设置，最久未使用（LRU）的 fielddata 会被回收为新数据腾出空间
+indices.fielddata.cache.size: 30%
+
+# fielddata 断路器默认设置堆的 作为 fielddata 大小的上限。
+indices.breaker.fielddata.limit: 40%
+
+# request 断路器估算需要完成其他请求部分的结构大小，例如创建一个聚合桶，默认限制是堆内存
+indices.breaker.request.limit: 40%
 
 #### 	2.logstash配置
 
