@@ -322,11 +322,51 @@ output{
 
 ### 3.1 Discover
 
-//todo  编辑
+The first thing to do in **Discover** is to select an [index pattern](https://www.elastic.co/guide/en/kibana/7.x/index-patterns.html), which defines the data you want to explore and visualize. If you haven’t yet created an index pattern, you can add a [sample data set](https://www.elastic.co/guide/en/kibana/7.x/add-sample-data.html), which has a pre-built index pattern.
+
+先建一个搜索模式
+
+![](D:\elk\doc_elk\images\indexpattern01.png)
+
+![](D:\elk\doc_elk\images\indexpattern02.jpg)
+
+![](D:\elk\doc_elk\images\indexpattern03.png)
+
+创建好搜索模式之后打开Discover标签页 如下图
+
+1 选择搜索模式
+
+2 选择关注的字段
+
+3 设置时间范围，可以设置页面多长时间刷新一次
+
+4 日志数据
+
+5 filters 可以设置过滤条件比如 status : 200 可以输入也可以点击+Add filter 按钮添加索引条件
+
+![image-20200510225538493](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20200510225538493.png)
+
+
 
 ### 3.2 Visualize
 
-//todo yy
+*Visualize* enables you to create visualizations of the data from your Elasticsearch indices, which you can then add to dashboards for analysis.
+
+Kibana visualizations are based on Elasticsearch queries. By using a series of Elasticsearch [aggregations](https://www.elastic.co/guide/en/elasticsearch/reference/7.x/search-aggregations.html) to extract and process your data, you can create charts that show you the trends, spikes, and dips you need to know about.
+
+To begin, open **Visualize**, then click **Create new visualization**.
+
+Visualize使您能够从Elasticsearch索引创建数据的可视化，然后可以将其添加到仪表板进行分析。
+
+Kibana可视化基于Elasticsearch查询。通过使用一系列Elasticsearch聚合来提取和处理数据，您可以创建图表，向您显示需要了解的趋势、峰值和下探。
+
+首先，打开“可视化”，然后单击“创建新可视化”。
+
+
+
+
+
+
 
 ### 3.3 Dashboard
 
