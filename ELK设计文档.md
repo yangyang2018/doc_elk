@@ -362,15 +362,156 @@ Kibana可视化基于Elasticsearch查询。通过使用一系列Elasticsearch聚
 
 首先，打开“可视化”，然后单击“创建新可视化”。
 
+**[Most frequently used visualizations](https://www.elastic.co/guide/en/kibana/7.x/most-frequent.html)**
 
+- **Line, area, and bar charts** — Compares different series in X/Y charts.
+- **Pie chart** — Displays each source contribution to a total.
+- **Data table** — Flattens aggregations into table format.
+- **Metric** — Displays a single number.
+- **Goal and gauge** — Displays a number with progress indicators.
+- **Tag cloud** — Displays words in a cloud, where the size of the word corresponds to its importance.
 
+-**折线图、面积图和条形图**-比较X/Y图表中的不同系列。
 
+-**饼图**-显示每个源对总计的贡献。
 
+-**数据表**-将聚合扁平化为表格式。
 
+-**公制**-显示单个数字。
+
+-**目标和量表**-显示带有进度指标的数字。
+
+-**Tag cloud**-在云中显示单词，其中单词的大小与其重要性相对应。
+
+##### 3.2.1Line
+
+选择新建可视化选择类型line,再选择资源
+
+![](D:\elk\doc_elk\images\line01.png)
+
+![](D:\elk\doc_elk\images\v02.png)
+
+配置
+
+1 配置纵坐标总量
+
+2  3 配置横坐标
+
+4 播放 展示效果
+
+5 保存并且命名
+
+![](D:\elk\doc_elk\images\line03.png)
+
+##### 3.2.2area
+
+类似Line操作 选择新建可视化选择类型area,再选择资源
+
+设置纵坐标 横坐标  点击播放查看效果
+
+![](D:\elk\doc_elk\images\area01.png)
+
+可以添加sub-buckets对数据近一步细分 点击播放查看效果
+
+![](D:\elk\doc_elk\images\area02.png)
+
+![](D:\elk\doc_elk\images\area03.png)
+
+可以做一下图行配置如更改图像类型，点击播放查看效果
+
+![](D:\elk\doc_elk\images\area04.png)
+
+##### 3.2.3 bar chart
+
+可以建立垂直方向条形图和水平方向条形图
+
+配置展示各个客户端的访问量垂直条形图以及以15分钟为递增的显示产生的数据量，点击播放查看效果
+
+![](D:\elk\doc_elk\images\bar01.png)
+
+![](D:\elk\doc_elk\images\bar02.png)
+
+##### 3.2.4 pie chart
+
+类似Line操作 选择新建可视化选择类型pie,再选择资源
+
+配置展示根据响应时间区间显示数据的组成部分（聚合类型为范围，字段选择响应时间，配置响应时间区间 ），点击查看播放效果
+
+![](D:\elk\doc_elk\images\pie01.png)
+
+![](D:\elk\doc_elk\images\pie02.png)
+
+##### 3.2.5 metric
+
+类似Line操作 选择新建可视化选择类型metric,再选择资源
+
+配置展示数据量，点击查看播放效果
+
+![](D:\elk\doc_elk\images\metric01.png)
+
+![](D:\elk\doc_elk\images\metric02.png)
+
+##### 3.2.6 Goal and gauge
+
+类似Line操作 选择新建可视化选择类型goal,再选择资源
+
+配置展示nginx错误日志是error级别的日志量 ，点击查看播放效果
+
+![](D:\elk\doc_elk\images\goal01.png)
+
+##### 3.2.7 Tag cloud
+
+类似Line操作 选择新建可视化选择类型 Tag cloud,再选择资源
+
+配置展示根据nginx访问日志的响应状态显示不同大小颜色的tag，点击查看播放效果
+
+![](D:\elk\doc_elk\images\tag01.png)
+
+##### 3.2.8 Timelion
+
+Timelion is a time series data visualizer that enables you to combine totally independent data sources within a single visualization. It’s driven by a simple expression language you use to retrieve time series data, perform calculations to tease out the answers to complex questions, and visualize the results.
+
+Timelion是一个时间序列数据可视化工具，使您能够在单个可视化中组合完全独立的数据源。它是由一种简单的表达式语言驱动的，您可以使用它来检索时间序列数据，执行计算来梳理复杂问题的答案，并可视化结果。
+
+note:表达式输入时会有提示
+
+![](D:\elk\doc_elk\images\timelion01.png)
+
+##### 3.2.9 其他
+
+添加保存好可视化之后就可以在Visualize下看到可视化列表了
+
+![](D:\elk\doc_elk\images\vs01.png)
 
 ### 3.3 Dashboard
 
-//todo yy
+A *dashboard* is a collection of visualizations, searches, and maps, typically in real-time. Dashboards provide at-a-glance insights into your data and enable you to drill down into details.
+
+仪表板是可视化、搜索和地图的集合，通常是实时的。仪表板提供对数据的一目了然的洞察力，并使您能够深入了解详细信息。
+
+1. 新建仪表盘
+2. 添加内容
+3. 保存仪表盘
+4. 输入名称
+5. 可以在仪表盘列表查看新添加的仪表盘
+
+![](D:\elk\doc_elk\images\dh01.png)
+
+![](D:\elk\doc_elk\images\dh02.png)
+
+![](D:\elk\doc_elk\images\dh03.png)
+
+![](D:\elk\doc_elk\images\dh04.png)
+
+
+
+![](D:\elk\doc_elk\images\dh05.png)
+
+![](D:\elk\doc_elk\images\dh06.png)
+
+
+
+
 
 ### 3.4 Elastalert
 //todo lihu
