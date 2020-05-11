@@ -314,6 +314,161 @@ output{
 
 #### 	5.elastalert配置  
 
+​    elastalert是使用python写的一个报警框架，通过查询ElasticSearch中的记录然后进行比对，通过配置好的报警规则对日志发送报警邮件。
+
+##### 5.1 config.json
+
+​    针对elastalertserver的配置文件，如果kibana中没有安装elastalert插件，可以不适用该服务。
+
+```
+
+{
+  "appName": "elastalert-server",
+  "port": 3030,
+  "wsport": 3333,
+  "elastalertPath": "/opt/elastalert",
+  "start": "2020-01-01T00:00:00",
+  "end": "2020-06-01T00:00:00",
+  "verbose": false,
+  "es_debug": false,
+  "debug": false,
+  "rulesPath": {
+    "relative": true,
+    "path": "/rules"
+  },
+  "templatesPath": {
+    "relative": true,
+    "path": "/rule_templates"
+  },
+  "es_host": "elasticsearch",
+  "es_port": 9200,
+  "writeback_index": "elastalert_status"
+}
+```
+
+##### 5.2 elastalert.yaml
+
+​	该配置为elastalert主要配置。
+
+```
+# The elasticsearch hostname for metadata writeback
+# Note that every rule can have its own elasticsearch host
+es_host: elasticsearch
+
+# The elasticsearch port
+es_port: 9200
+
+# This is the folder that contains the rule yaml files
+# Any .yaml file will be loaded as a rule
+rules_folder: rules
+
+# How often ElastAlert will query elasticsearch
+# The unit can be anything from weeks to seconds
+run_every:
+  seconds: 5000
+
+# ElastAlert will buffer results from the most recent
+# period of time, in case some log sources are not in real time
+buffer_time:
+  minutes: 1
+
+# Optional URL prefix for elasticsearch
+#es_url_prefix: elasticsearch
+
+# Connect with TLS to elasticsearch
+#use_ssl: True
+
+# Verify TLS certificates
+#verify_certs: True
+
+# GET request with body is the default option for Elasticsearch.
+# If it fails for some reason, you can pass 'GET', 'POST' or 'source'.
+# See http://elasticsearch-py.readthedocs.io/en/master/connection.html?highlight=send_get_body_as#transport
+# for details
+#es_send_get_body_as: GET
+
+# Option basic-auth username and password for elasticsearch
+es_username: elastic
+es_password: luoji_elk
+
+# The index on es_host which is used for metadata storage
+# This can be a unmapped index, but it is recommended that you run
+# elastalert-create-index to set a mapping
+writeback_index: elastalert_status
+
+# If an alert fails for some reason, ElastAlert will retry
+# sending the alert until this time period has elapsed
+alert_time_limit:
+  days: 2
+
+```
+
+##### 5.3 报警规则配置
+
+​	报警规则配置都在rules文件夹下，此处以frequency的报警为例。
+
+```
+# (OptionaL) Connect with SSL to Elasticsearch
+#use_ssl: True
+
+# (Optional) basic-auth username and password for Elasticsearch
+es_username: elastic
+es_password: luoji_elk
+
+# (Required)
+# Rule name, must be unique
+name: Example frequency rule
+
+# (Required)
+# Type of alert.
+# the frequency rule type alerts when num_events events occur with timeframe time
+type: frequency
+
+# (Required)
+# Index to search, wildcard supported
+index: nginx*
+
+# (Required, frequency specific)
+# Alert when this many documents matching the query occur within a timeframe
+num_events: 50
+
+# (Required, frequency specific)
+# num_events must occur within this amount of time to trigger an alert
+timeframe:
+  seconds: 20
+
+# (Required)
+# A list of Elasticsearch filters used for find events
+# These filters are joined with AND and nested in a filtered query
+# For more info: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html
+filter:
+- term:
+    status: "200"
+
+#邮箱设置
+smtp_host: smtp.qq.com
+smtp_port: 465
+smtp_ssl: true
+from_addr: "45@qq.com"
+smtp_auth_file: /opt/elastalert/smtp_auth_file.yaml
+# (Required)
+# The alert is use when a match is found
+alert:
+- "email"
+
+# (required, email specific)
+# a list of email addresses to send alerts to
+email:
+- "n@dingtalk.com
+```
+
+以上配置中达到报警规则时会以邮件的形式通知收件人，同时需要配置一个发送放的用户名和授权码。
+
+```
+user: 45@qq.com
+password: ********#此处为授权码，不是密码
+```
+
 
 
 ## 3.使用说明
