@@ -528,9 +528,53 @@ Kibana可视化基于Elasticsearch查询。通过使用一系列Elasticsearch聚
 //todo yy
 
 ### 3.4 Elastalert
-//todo lihu
+##### 3.4.1 插件安装
+
+- 下载[elastalert](https://github.com/bitsensor/elastalert-kibana-plugin)插件，要求和kibana版本要一致，也可以选择相近的版本。
+
+- 拷贝插件到容器内
+
+  `docker cp plugin.zip image:/usr/share/kibana/bin`
+
+- 进入kibana容器内部
+
+  ```
+  #修改package.json 使kibana的版本和插件版本一致
+  cd /usr/share/kibana/bin
+  ./kibana-plugin install file:///usr/share/kibana/bin/plugin.zip
+  #安装完成后，修改plugins目录下package.json下插件的版本号和kibana版本一致
+  ```
+
+- 配置config/kibana.yml
+
+  插件需要配合elastalert服务端使用，默认连接localhost:3030，如果需要修改host和port，在config/kibana.yml增加以下配置。
+
+  ```
+  elastalert-kibana-plugin.serverHost: 123.0.0.1
+  elastalert-kibana-plugin.serverPort: 9000
+  ```
+
+- 重启kibana。
+
+- 重新提交一份新的kibana镜像。
+
+  `docker commit -a "author" -m “add plugin" containerID new_image_id`
+
+##### 3.4.2 插件使用
+
+* 安装完成后在kibana中可以可能到elastalert的图标，如下图所示。页面中会自动加载在elastalert中配置好的报警规则。
+
+![image-20200511105456987](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511105456987.png)
+
+* 新建规则
+
+  ![image-20200511105751981](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511105751981.png)
 
 ### 3.5 Stack Monitoring
+
+elk服务监控，可以对es，kibana，logstash等服务的磁盘占用，内存使用，索引详情等进行实时监控
+
+![image-20200511110004009](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511110004009.png)
 
 ### 3.6 Management
 
@@ -548,9 +592,30 @@ Kibana可视化基于Elasticsearch查询。通过使用一系列Elasticsearch聚
 
 ### 4.3 elastalert配置问题
 
+elastalert使用最新版的docker时会一直报错，显示无法连接到elasticsearch，原因是最新版的docker不支持es 7.0以上的版本，需要重新下载3.0.0-beta.0版本的镜像，同时会开启elastalert server服务。
+
+
+
 ### 4.4 待完善
 
 
 
 ## 5. 设计总结
 
+##### 5.1 技术文档参考
+
+​    在设计过程中很多软件的安装和配置需要参考网上的资源，如何高效的查找有用的文档，同时兼容其他模块的配置变得有些难度，网络的资源很多都已经过时，并且内容较多不容易快速找到目标答案。这样就会浪费很多的时间。经过此次项目的实践，对资料的查找方法总结如下：
+
+* 查阅官网文档，快速找到目标解决方案。
+* 浏览github上的issues，能更快的找到出错的原因。
+* 使用google
+* 做好笔记
+
+##### 5.2 错误解决流程
+
+​    elk设计到的框架比较多，配置文件随着也会增多，调试问题占用了大量的时间，如何快速的解决开发中出现的问题，对工作效率会有很大的影响。
+
+* 看日志，仔细分析日志
+* 查找网上有效的资源，参考5.1
+* 尽量避免反复的尝试
+* ![]()寻找同事的帮助
