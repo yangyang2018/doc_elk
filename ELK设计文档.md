@@ -314,6 +314,161 @@ output{
 
 #### 	5.elastalert配置  
 
+​    elastalert是使用python写的一个报警框架，通过查询ElasticSearch中的记录然后进行比对，通过配置好的报警规则对日志发送报警邮件。
+
+##### 5.1 config.json
+
+​    针对elastalertserver的配置文件，如果kibana中没有安装elastalert插件，可以不适用该服务。
+
+```
+
+{
+  "appName": "elastalert-server",
+  "port": 3030,
+  "wsport": 3333,
+  "elastalertPath": "/opt/elastalert",
+  "start": "2020-01-01T00:00:00",
+  "end": "2020-06-01T00:00:00",
+  "verbose": false,
+  "es_debug": false,
+  "debug": false,
+  "rulesPath": {
+    "relative": true,
+    "path": "/rules"
+  },
+  "templatesPath": {
+    "relative": true,
+    "path": "/rule_templates"
+  },
+  "es_host": "elasticsearch",
+  "es_port": 9200,
+  "writeback_index": "elastalert_status"
+}
+```
+
+##### 5.2 elastalert.yaml
+
+​	该配置为elastalert主要配置。
+
+```
+# The elasticsearch hostname for metadata writeback
+# Note that every rule can have its own elasticsearch host
+es_host: elasticsearch
+
+# The elasticsearch port
+es_port: 9200
+
+# This is the folder that contains the rule yaml files
+# Any .yaml file will be loaded as a rule
+rules_folder: rules
+
+# How often ElastAlert will query elasticsearch
+# The unit can be anything from weeks to seconds
+run_every:
+  seconds: 5000
+
+# ElastAlert will buffer results from the most recent
+# period of time, in case some log sources are not in real time
+buffer_time:
+  minutes: 1
+
+# Optional URL prefix for elasticsearch
+#es_url_prefix: elasticsearch
+
+# Connect with TLS to elasticsearch
+#use_ssl: True
+
+# Verify TLS certificates
+#verify_certs: True
+
+# GET request with body is the default option for Elasticsearch.
+# If it fails for some reason, you can pass 'GET', 'POST' or 'source'.
+# See http://elasticsearch-py.readthedocs.io/en/master/connection.html?highlight=send_get_body_as#transport
+# for details
+#es_send_get_body_as: GET
+
+# Option basic-auth username and password for elasticsearch
+es_username: elastic
+es_password: luoji_elk
+
+# The index on es_host which is used for metadata storage
+# This can be a unmapped index, but it is recommended that you run
+# elastalert-create-index to set a mapping
+writeback_index: elastalert_status
+
+# If an alert fails for some reason, ElastAlert will retry
+# sending the alert until this time period has elapsed
+alert_time_limit:
+  days: 2
+
+```
+
+##### 5.3 报警规则配置
+
+​	报警规则配置都在rules文件夹下，此处以frequency的报警为例。
+
+```
+# (OptionaL) Connect with SSL to Elasticsearch
+#use_ssl: True
+
+# (Optional) basic-auth username and password for Elasticsearch
+es_username: elastic
+es_password: luoji_elk
+
+# (Required)
+# Rule name, must be unique
+name: Example frequency rule
+
+# (Required)
+# Type of alert.
+# the frequency rule type alerts when num_events events occur with timeframe time
+type: frequency
+
+# (Required)
+# Index to search, wildcard supported
+index: nginx*
+
+# (Required, frequency specific)
+# Alert when this many documents matching the query occur within a timeframe
+num_events: 50
+
+# (Required, frequency specific)
+# num_events must occur within this amount of time to trigger an alert
+timeframe:
+  seconds: 20
+
+# (Required)
+# A list of Elasticsearch filters used for find events
+# These filters are joined with AND and nested in a filtered query
+# For more info: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html
+filter:
+- term:
+    status: "200"
+
+#邮箱设置
+smtp_host: smtp.qq.com
+smtp_port: 465
+smtp_ssl: true
+from_addr: "45@qq.com"
+smtp_auth_file: /opt/elastalert/smtp_auth_file.yaml
+# (Required)
+# The alert is use when a match is found
+alert:
+- "email"
+
+# (required, email specific)
+# a list of email addresses to send alerts to
+email:
+- "n@dingtalk.com
+```
+
+以上配置中达到报警规则时会以邮件的形式通知收件人，同时需要配置一个发送放的用户名和授权码。
+
+```
+user: 45@qq.com
+password: ********#此处为授权码，不是密码
+```
+
 
 
 ## 3.使用说明
@@ -514,9 +669,53 @@ A *dashboard* is a collection of visualizations, searches, and maps, typically i
 
 
 ### 3.4 Elastalert
-//todo lihu
+##### 3.4.1 插件安装
+
+- 下载[elastalert](https://github.com/bitsensor/elastalert-kibana-plugin)插件，要求和kibana版本要一致，也可以选择相近的版本。
+
+- 拷贝插件到容器内
+
+  `docker cp plugin.zip image:/usr/share/kibana/bin`
+
+- 进入kibana容器内部
+
+  ```
+  #修改package.json 使kibana的版本和插件版本一致
+  cd /usr/share/kibana/bin
+  ./kibana-plugin install file:///usr/share/kibana/bin/plugin.zip
+  #安装完成后，修改plugins目录下package.json下插件的版本号和kibana版本一致
+  ```
+
+- 配置config/kibana.yml
+
+  插件需要配合elastalert服务端使用，默认连接localhost:3030，如果需要修改host和port，在config/kibana.yml增加以下配置。
+
+  ```
+  elastalert-kibana-plugin.serverHost: 123.0.0.1
+  elastalert-kibana-plugin.serverPort: 9000
+  ```
+
+- 重启kibana。
+
+- 重新提交一份新的kibana镜像。
+
+  `docker commit -a "author" -m “add plugin" containerID new_image_id`
+
+##### 3.4.2 插件使用
+
+* 安装完成后在kibana中可以可能到elastalert的图标，如下图所示。页面中会自动加载在elastalert中配置好的报警规则。
+
+![image-20200511105456987](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511105456987.png)
+
+* 新建规则
+
+  ![image-20200511105751981](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511105751981.png)
 
 ### 3.5 Stack Monitoring
+
+elk服务监控，可以对es，kibana，logstash等服务的磁盘占用，内存使用，索引详情等进行实时监控
+
+![image-20200511110004009](C:\Users\luoji\AppData\Roaming\Typora\typora-user-images\image-20200511110004009.png)
 
 ### 3.6 Management
 
@@ -534,9 +733,30 @@ A *dashboard* is a collection of visualizations, searches, and maps, typically i
 
 ### 4.3 elastalert配置问题
 
+elastalert使用最新版的docker时会一直报错，显示无法连接到elasticsearch，原因是最新版的docker不支持es 7.0以上的版本，需要重新下载3.0.0-beta.0版本的镜像，同时会开启elastalert server服务。
+
+
+
 ### 4.4 待完善
 
 
 
 ## 5. 设计总结
 
+##### 5.1 技术文档参考
+
+​    在设计过程中很多软件的安装和配置需要参考网上的资源，如何高效的查找有用的文档，同时兼容其他模块的配置变得有些难度，网络的资源很多都已经过时，并且内容较多不容易快速找到目标答案。这样就会浪费很多的时间。经过此次项目的实践，对资料的查找方法总结如下：
+
+* 查阅官网文档，快速找到目标解决方案。
+* 浏览github上的issues，能更快的找到出错的原因。
+* 使用google
+* 做好笔记
+
+##### 5.2 错误解决流程
+
+​    elk设计到的框架比较多，配置文件随着也会增多，调试问题占用了大量的时间，如何快速的解决开发中出现的问题，对工作效率会有很大的影响。
+
+* 看日志，仔细分析日志
+* 查找网上有效的资源，参考5.1
+* 尽量避免反复的尝试
+* ![]()寻找同事的帮助
